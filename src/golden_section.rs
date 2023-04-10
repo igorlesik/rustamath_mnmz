@@ -33,15 +33,23 @@ const MIN_TOLERANCE: f64 = 3.0e-8_f64;
 /// let poly2 = |x: f64| (x-1.0)*(x-2.0);
 /// let ranges = vec![(10.0, 20.0), (20.0, 10.0), (-10.0, 0.0)];
 /// for range in ranges {
-///     let (xmin, f, nr_iterations) = golden_section_search(poly2, range.0, range.1, 0.0);
+///     let (xmin, f, nr_iterations) = golden_section_search(poly2, range.0, range.1, 0.0, 1);
 ///     println!("MIN: {:.8} f(xmin): {:6.2} iterations:{}",
 ///         xmin, f, nr_iterations
 ///     );
 ///     assert_float_relative_eq!(xmin, 1.5, 1.0e-8);
 /// }
 ///
-pub fn golden_section_search(fun: FunToMnmz, a: f64, b: f64, tol: f64) -> (f64, f64, usize) {
+pub fn golden_section_search(
+    fun: FunToMnmz,
+    a: f64,
+    b: f64,
+    tol: f64,
+    max_iterations: usize
+) -> (f64, f64, usize)
+{
     let tol = tol.max(MIN_TOLERANCE);
+    let max_iterations = max_iterations.max(1).min(1000);
     const R: f64 = 0.61803399_f64;
     const C: f64 = 1.0 - R; // The golden ratios.
 
@@ -69,7 +77,7 @@ pub fn golden_section_search(fun: FunToMnmz, a: f64, b: f64, tol: f64) -> (f64, 
     // the function at the original endpoints.
     let mut f1 = fun(x1);
     let mut f2 = fun(x2);
-    let mut nr_iterations: usize = 1;
+    let mut nr_iterations: usize = 0;
     while (x3-x0).abs() > tol*(x1.abs() + x2.abs()) {
         if f2 < f1 {
             let d = R*x2 + C*x3;
@@ -82,6 +90,7 @@ pub fn golden_section_search(fun: FunToMnmz, a: f64, b: f64, tol: f64) -> (f64, 
             shft2(&mut f2, &mut f1, fun(x1));
         }
         nr_iterations += 1;
+        if nr_iterations >= max_iterations { break; }
     }
 
     // Output the best of the two current values.
@@ -103,7 +112,7 @@ fn test_poly2() {
         (-2000.0, -1000.0), (-10_000.0, 30_000.0), (0.0001, 0.0002), (-0.00001, 1.4999)];
 
     for range in ranges {
-        let (xmin, f, nr_iterations) = golden_section_search(poly2, range.0, range.1, 0.0);
+        let (xmin, f, nr_iterations) = golden_section_search(poly2, range.0, range.1, 0.0, 0);
 
         println!("MIN: {:.8} f(xmin): {:6.2} iterations:{}",
             xmin, f, nr_iterations
@@ -111,4 +120,42 @@ fn test_poly2() {
 
         assert_float_relative_eq!(xmin, 1.5, 1.0e-8);
     }
+}
+
+#[cfg(test)]
+#[test]
+fn test_cosine() {
+    // Minimum at Pi on [0, 2*Pi].
+    let cosine = |x: f64| x.cos();
+
+    let ranges = vec![(0.01, 1.0)];
+
+    for range in ranges {
+        let (xmin, f, nr_iterations) = golden_section_search(cosine, range.0, range.1, 0.0, 0);
+
+        println!("MIN: {:.8} f(xmin): {:6.2} iterations:{}",
+            xmin, f, nr_iterations
+        );
+
+        assert_float_relative_eq!(xmin, std::f64::consts::PI, 1.0e-8);
+    }
+}
+
+#[cfg(test)]
+#[test]
+fn test_saw() {
+    let saw = |x: f64| if  x >= 0.0 { x*x*x } else { -x / 1000.0 } ;
+
+    let ranges = vec![(10.0, 20.0)/*, (20.0, 10.0), (-10.0, 0.0),
+        (-2000.0, -1000.0), (-10_000.0, 30_000.0), (0.0001, 0.0002), (-0.00001, 1.4999)*/];
+
+        for range in ranges {
+            let (xmin, f, nr_iterations) = golden_section_search(saw, range.0, range.1, 0.0, 1);
+
+            println!("MIN: {:.8} f(xmin): {:6.2} iterations:{}",
+                xmin, f, nr_iterations
+            );
+
+            assert_float_absolute_eq!(xmin, 0.0, 1.0e-5);
+        }
 }

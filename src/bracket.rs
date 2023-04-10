@@ -188,3 +188,45 @@ fn test_poly2() {
         assert!(bracket.fa > bracket.fb && bracket.fb < bracket.fc);
     }
 }
+
+#[cfg(test)]
+#[test]
+fn test_cosine() {
+    // Minimum at Pi on [0, 2*Pi].
+    let cosine = |x: f64| x.cos();
+
+    let ranges = vec![(0.01, 1.0)];
+
+    for range in ranges {
+        let bracket = find_bracket(cosine, range.0, range.1);
+
+        println!("Bracket: [{:6.2} < {:6.2} < {:6.2}] with values [{:6.2} < {:6.2} < {:6.2}] iterations:{}",
+            bracket.a, bracket.b, bracket.c,
+            bracket.fa, bracket.fb, bracket.fc,
+            bracket.nr_iterations
+        );
+
+        assert!(bracket.fa > bracket.fb && bracket.fb < bracket.fc);
+    }
+}
+
+#[cfg(test)]
+#[test]
+fn test_saw() {
+    let saw = |x: f64| if  x >= 0.0 { x*x*x } else { -x / 1000.0 } ;
+
+    let ranges = vec![(10.0, 20.0), (20.0, 10.0), (-10.0, 0.0),
+        (-2000.0, -1000.0), (-10_000.0, 30_000.0), (0.0001, 0.0002), (-0.00001, 1.4999)];
+
+    for range in ranges {
+        let bracket = find_bracket(saw, range.0, range.1);
+
+        println!("Bracket: [{:6.2} < {:6.2} < {:6.2}] with values [{:6.2} < {:6.2} < {:6.2}] iterations:{}",
+            bracket.a, bracket.b, bracket.c,
+            bracket.fa, bracket.fb, bracket.fc,
+            bracket.nr_iterations
+        );
+
+        assert!(bracket.fa > bracket.fb && bracket.fb < bracket.fc);
+    }
+}
