@@ -1,0 +1,18 @@
+[package]
+name = "rustamath_mnmz"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+keywords = ["scientific"]
+categories = ["science"]
+description = "Minimization functions"
+homepage = "https://github.com/igorlesik/rustamath_mnmz"
+repository = "https://github.com/igorlesik/rustamath_mnmz"
+readme = "README.md"
+#documentation =
+#workspace = "path/to/workspace/root"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+assert_float_eq = "1"
