@@ -10,8 +10,10 @@
 //!
 use super::bracket::{FunToMnmz, find_bracket, shft3, shft2};
 
+/// Smallest tolerance.
+///
 /// See book "Numerical recipes, the art of scientific computing."
-/// sqrt(f64 precision 10^16)
+/// sqrt(f64 precision 10^16), by Tailor series for `f(x+eps)`
 const MIN_TOLERANCE: f64 = 3.0e-8_f64;
 
 /// Golden section search for a minimum.

@@ -10,6 +10,8 @@ pub mod bracket;
 pub use bracket::{find_bracket, BracketRes};
 pub mod golden_section;
 pub use golden_section::golden_section_search;
+pub mod brents_method;
+pub use brents_method::brent_search;
 
 #[cfg(test)]
 #[macro_use]
