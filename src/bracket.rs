@@ -10,9 +10,6 @@
 //!
 use std::mem;
 
-/// Type of functions we deal with.
-pub type FunToMnmz = fn (input: f64) -> f64;
-
 /// Bracketing points for a minimum.
 pub struct BracketRes {
     /// a
@@ -71,7 +68,7 @@ const TINY: f64 = 1.0e-20_f64;
 /// }
 /// ```
 ///
-pub fn find_bracket(fun: FunToMnmz, a: f64, b: f64) -> BracketRes {
+pub fn find_bracket<F: Fn (f64) -> f64>(fun: F, a: f64, b: f64) -> BracketRes {
     let mut a = a;
     let mut b = b;
     let mut fa = fun(a);
@@ -160,12 +157,13 @@ pub fn shft3(a: &mut f64, b: &mut f64, c: &mut f64, d: f64) {
     *b = *c;
     *c = d;
 }
-
-/*#[inline] fn mov3(a: &mut f64, b: &mut f64, c: &mut f64, d: f64, e: f64, f: f64) {
+/// Helper
+#[inline]
+pub fn mov3(a: &mut f64, b: &mut f64, c: &mut f64, d: f64, e: f64, f: f64) {
     *a = d;
     *b = e;
     *c = f;
-}*/
+}
 
 #[cfg(test)]
 #[test]

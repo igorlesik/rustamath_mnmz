@@ -8,7 +8,7 @@
 //! 1. William H. Press - Numerical recipes, the art of scientific computing.
 //!   Cambridge University Press (2007).
 //!
-use super::bracket::{FunToMnmz, find_bracket, shft3, shft2};
+use super::bracket::{find_bracket, shft3, shft2};
 
 /// Smallest tolerance.
 ///
@@ -42,8 +42,8 @@ const MIN_TOLERANCE: f64 = 3.0e-8_f64;
 ///     assert_float_relative_eq!(xmin, 1.5, 1.0e-8);
 /// }
 ///
-pub fn golden_section_search(
-    fun: FunToMnmz,
+pub fn golden_section_search<F: Fn (f64) -> f64>(
+    fun: F,
     a: f64,
     b: f64,
     tol: f64,
@@ -55,7 +55,7 @@ pub fn golden_section_search(
     const R: f64 = 0.61803399_f64;
     const C: f64 = 1.0 - R; // The golden ratios.
 
-    let bracket = find_bracket(fun, a, b);
+    let bracket = find_bracket(&fun, a, b);
     let a = bracket.a;
     let b = bracket.b;
     let c = bracket.c;

@@ -11,7 +11,7 @@ Supported methods:
 - One Dimension
   * Bracket a Minimum
   * Golden Section Search
-  * TODO Brent’s Method
-  * TODO Search with First Derivatives
+  * Brent’s Method
+  * TODO Brent’s Method using First Derivative
 - Multidimensions
   * TODO Downhill Simplex Method

@@ -8,7 +8,7 @@
 //! 1. William H. Press - Numerical recipes, the art of scientific computing.
 //!   Cambridge University Press (2007).
 //!
-use super::bracket::{FunToMnmz, find_bracket, shft3};
+use super::bracket::{find_bracket, shft3};
 
 /// Smallest tolerance.
 ///
@@ -21,8 +21,8 @@ const MIN_TOLERANCE: f64 = 3.0e-8_f64;
 /// - William H. Press - Numerical recipes, the art of scientific computing.
 ///   Cambridge University Press (2007).
 ///
-pub fn brent_search(
-    fun: FunToMnmz,
+pub fn brent_search<F: Fn (f64) -> f64>(
+    fun: F,
     a: f64,
     b: f64,
     tol: f64,
@@ -39,7 +39,7 @@ pub fn brent_search(
     // https://doc.rust-lang.org/std/primitive.f64.html#associatedconstant.EPSILON
     const ZEPS: f64 = f64::EPSILON * 1.0e-3;
 
-    let bracket = find_bracket(fun, a, b);
+    let bracket = find_bracket(&fun, a, b);
     let ax = bracket.a;
     let _b = bracket.b;
     let c = bracket.c;
