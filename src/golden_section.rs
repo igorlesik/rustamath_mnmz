@@ -33,7 +33,7 @@ const MIN_TOLERANCE: f64 = 3.0e-8_f64;
 /// let poly2 = |x: f64| (x-1.0)*(x-2.0);
 /// let ranges = vec![(10.0, 20.0), (20.0, 10.0), (-10.0, 0.0)];
 /// for range in ranges {
-///     let (xmin, f, nr_iterations) = golden_section_search(poly2, range.0, range.1, 0.0, 1);
+///     let (xmin, f, nr_iterations) = golden_section_search(poly2, range.0, range.1, 0.0, 0);
 ///     println!("MIN: {:.8} f(xmin): {:6.2} iterations:{}",
 ///         xmin, f, nr_iterations
 ///     );
@@ -49,7 +49,7 @@ pub fn golden_section_search(
 ) -> (f64, f64, usize)
 {
     let tol = tol.max(MIN_TOLERANCE);
-    let max_iterations = max_iterations.max(1).min(1000);
+    let max_iterations = if max_iterations < 1 { 500 } else { max_iterations.min(1000) };
     const R: f64 = 0.61803399_f64;
     const C: f64 = 1.0 - R; // The golden ratios.
 
@@ -78,6 +78,7 @@ pub fn golden_section_search(
     let mut f1 = fun(x1);
     let mut f2 = fun(x2);
     let mut nr_iterations: usize = 0;
+
     while (x3-x0).abs() > tol*(x1.abs() + x2.abs()) {
         if f2 < f1 {
             let d = R*x2 + C*x3;
@@ -90,7 +91,13 @@ pub fn golden_section_search(
             shft2(&mut f2, &mut f1, fun(x1));
         }
         nr_iterations += 1;
+
         if nr_iterations >= max_iterations { break; }
+
+        // @igor: saw/non-smooth functions demostrate that `tol*(x1.abs() + x2.abs())`
+        // gets smaller faster than `(x3-x0).abs()` preventing the conversion;
+        // here if we see that x3 is close to x0 and f1 to f2 we force the exit.
+        if nr_iterations > 10 && (x3-x0).abs() < tol && (f1 - f2).abs() < tol { break; }
     }
 
     // Output the best of the two current values.
@@ -146,11 +153,11 @@ fn test_cosine() {
 fn test_saw() {
     let saw = |x: f64| if  x >= 0.0 { x*x*x } else { -x / 1000.0 } ;
 
-    let ranges = vec![(10.0, 20.0)/*, (20.0, 10.0), (-10.0, 0.0),
-        (-2000.0, -1000.0), (-10_000.0, 30_000.0), (0.0001, 0.0002), (-0.00001, 1.4999)*/];
+    let ranges = vec![(10.0, 20.0), (20.0, 10.0), (-10.0, 0.0),
+        (-2000.0, -1000.0), (-10_000.0, 30_000.0), (0.0001, 0.0002), (-0.00001, 1.4999)];
 
         for range in ranges {
-            let (xmin, f, nr_iterations) = golden_section_search(saw, range.0, range.1, 0.0, 1);
+            let (xmin, f, nr_iterations) = golden_section_search(saw, range.0, range.1, 1.0e-5, 0);
 
             println!("MIN: {:.8} f(xmin): {:6.2} iterations:{}",
                 xmin, f, nr_iterations
