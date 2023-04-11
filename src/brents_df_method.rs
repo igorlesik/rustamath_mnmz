@@ -21,6 +21,24 @@ const MIN_TOLERANCE: f64 = 3.0e-8_f64;
 /// - William H. Press - Numerical recipes, the art of scientific computing.
 ///   Cambridge University Press (2007).
 ///
+///
+/// # Example
+///
+/// ```
+/// use rustamath_mnmz::{brent_df_search, brent_search, golden_section_search};
+/// use assert_float_eq::*;
+/// let cosine = |x: f64| (x.cos(), -(x.sin())); // Minimum at Pi when x ∈ [0, 2*Pi].
+/// let range = (0.01, 1.0);
+///
+/// let (xmin, f, nr_iterations) = brent_df_search(cosine, range.0, range.1, 0.0, 0);
+/// let (_, _, nr_iterations_brent) = brent_search(|x| cosine(x).0, range.0, range.1, 0.0, 0);
+/// let (_, _, nr_iterations_golden) = golden_section_search(|x| cosine(x).0, range.0, range.1, 0.0, 0);
+///
+/// println!("xmin: {:.8} f(xmin): {:6.2} iterations: {} vs brent {} golden {}",
+///     xmin, f, nr_iterations, nr_iterations_brent, nr_iterations_golden);
+///
+/// assert_float_relative_eq!(xmin, std::f64::consts::PI, 1.0e-8);
+/// ```
 pub fn brent_df_search<F: Fn (f64) -> (f64, f64)>(
     fun: F,
     a: f64,
@@ -37,7 +55,7 @@ pub fn brent_df_search<F: Fn (f64) -> (f64, f64)>(
     // https://doc.rust-lang.org/std/primitive.f64.html#associatedconstant.EPSILON
     const ZEPS: f64 = f64::EPSILON * 1.0e-3;
 
-    let bracket = find_bracket(|x| {let (f, _df)=fun(x); f}, a, b);
+    let bracket = find_bracket(|x| fun(x).0, a, b);
     let ax = bracket.a;
     let _b = bracket.b;
     let c = bracket.c;
@@ -160,4 +178,59 @@ pub fn brent_df_search<F: Fn (f64) -> (f64, f64)>(
     }
 
     (x, fx, nr_iterations)
+}
+
+#[cfg(test)]
+#[test]
+fn test_cosine() {
+    use super::{golden_section_search, brent_search};
+
+    // Minimum at Pi on [0, 2*Pi].
+    let cosine = |x: f64| (x.cos(), -(x.sin()));
+
+    let ranges = vec![(0.01, 1.0)];
+
+    for range in ranges {
+        let (xmin, f, nr_iterations) = brent_df_search(cosine, range.0, range.1, 0.0, 0);
+
+        let (_, _, nr_iterations_golden) =
+            golden_section_search(|x| cosine(x).0, range.0, range.1, 0.0, 0);
+
+        let (_, _, nr_iterations_brent) =
+            brent_search(|x| cosine(x).0, range.0, range.1, 0.0, 0);
+
+        println!("xmin: {:.8} f(xmin): {:6.2} iterations: {} vs brent {} golden {}",
+            xmin, f, nr_iterations, nr_iterations_brent, nr_iterations_golden
+        );
+
+        assert_float_relative_eq!(xmin, std::f64::consts::PI, 1.0e-8);
+    }
+}
+
+#[cfg(test)]
+#[test]
+fn test_poly2() {
+    use super::{golden_section_search, brent_search};
+
+    // Roots 1.0 and 2.0, minimum at 1.5.
+    let poly2 = |x: f64| ((x-1.0)*(x-2.0), 2.0*x-3.0);
+
+    let ranges = vec![(10.0, 20.0), (20.0, 10.0), (-10.0, 0.0),
+        (-2000.0, -1000.0), (-10_000.0, 30_000.0), (0.0001, 0.0002), (-0.00001, 1.4999)];
+
+    for range in ranges {
+        let (xmin, f, nr_iterations) = brent_df_search(poly2, range.0, range.1, 0.0, 0);
+
+        let (_, _, nr_iterations_golden) =
+            golden_section_search(|x| poly2(x).0, range.0, range.1, 0.0, 0);
+
+        let (_, _, nr_iterations_brent) =
+            brent_search(|x| poly2(x).0, range.0, range.1, 0.0, 0);
+
+        println!("xmin: {:.8} f(xmin): {:6.2} iterations: {} vs brent {} vs golden {}",
+            xmin, f, nr_iterations, nr_iterations_brent, nr_iterations_golden
+        );
+
+        assert_float_relative_eq!(xmin, 1.5, 1.0e-8);
+    }
 }

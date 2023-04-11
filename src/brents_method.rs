@@ -21,6 +21,22 @@ const MIN_TOLERANCE: f64 = 3.0e-8_f64;
 /// - William H. Press - Numerical recipes, the art of scientific computing.
 ///   Cambridge University Press (2007).
 ///
+/// # Example
+///
+/// ```
+/// use rustamath_mnmz::{brent_search, golden_section_search};
+/// use assert_float_eq::*;
+/// let cosine = |x: f64| x.cos(); // Minimum at Pi when x ∈ [0, 2*Pi].
+/// let range = (0.01, 1.0);
+///
+/// let (xmin, f, nr_iterations) = brent_search(cosine, range.0, range.1, 0.0, 0);
+/// let (_, _, nr_iterations_golden) = golden_section_search(cosine, range.0, range.1, 0.0, 0);
+///
+/// println!("xmin: {:.8} f(xmin): {:6.2} iterations: {} vs golden {}",
+///     xmin, f, nr_iterations, nr_iterations_golden);
+///
+/// assert_float_relative_eq!(xmin, std::f64::consts::PI, 1.0e-8);
+/// ```
 pub fn brent_search<F: Fn (f64) -> f64>(
     fun: F,
     a: f64,
@@ -132,7 +148,7 @@ pub fn brent_search<F: Fn (f64) -> f64>(
 #[cfg(test)]
 #[test]
 fn test_poly2() {
-    use super::golden_section::golden_section_search;
+    use super::golden_section_search;
 
     // Roots 1.0 and 2.0, minimum at 1.5.
     let poly2 = |x: f64| (x-1.0)*(x-2.0);
@@ -145,7 +161,7 @@ fn test_poly2() {
 
         let (_, _, nr_iterations_golden) = golden_section_search(poly2, range.0, range.1, 0.0, 0);
 
-        println!("MIN: {:.8} f(xmin): {:6.2} iterations: {} vs golden {}",
+        println!("xmin: {:.8} f(xmin): {:6.2} iterations: {} vs golden {}",
             xmin, f, nr_iterations, nr_iterations_golden
         );
 
@@ -156,9 +172,9 @@ fn test_poly2() {
 #[cfg(test)]
 #[test]
 fn test_cosine() {
-    use super::golden_section::golden_section_search;
+    use super::golden_section_search;
 
-    // Minimum at Pi on [0, 2*Pi].
+    // Minimum at Pi when x ∈ [0, 2*Pi].
     let cosine = |x: f64| x.cos();
 
     let ranges = vec![(0.01, 1.0)];
@@ -168,7 +184,7 @@ fn test_cosine() {
 
         let (_, _, nr_iterations_golden) = golden_section_search(cosine, range.0, range.1, 0.0, 0);
 
-        println!("MIN: {:.8} f(xmin): {:6.2} iterations: {} vs golden {}",
+        println!("xmin: {:.8} f(xmin): {:6.2} iterations: {} vs golden {}",
             xmin, f, nr_iterations, nr_iterations_golden
         );
 
@@ -179,7 +195,7 @@ fn test_cosine() {
 #[cfg(test)]
 #[test]
 fn test_saw() {
-    use super::golden_section::golden_section_search;
+    use super::golden_section_search;
 
     let saw = |x: f64| if  x >= 0.0 { x*x*x } else { -x / 1000.0 } ;
 
@@ -191,7 +207,7 @@ fn test_saw() {
 
             let (xmin_gold, f_gold, nr_iterations_gold) = golden_section_search(saw, range.0, range.1, 1.0e-5, 0);
 
-            println!("MIN: {:.8} f(xmin): {:6.2} iterations: {} vs golden {:.8} f(xmin): {:6.2} {}",
+            println!("xmin: {:.8} f(xmin): {:6.2} iterations: {} vs golden {:.8} f(xmin): {:6.2} {}",
                 xmin, f, nr_iterations, xmin_gold, f_gold, nr_iterations_gold
             );
 
