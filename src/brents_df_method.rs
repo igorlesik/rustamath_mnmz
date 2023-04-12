@@ -185,18 +185,19 @@ pub fn brent_df_search<F: Fn (f64) -> (f64, f64)>(
 fn test_cosine() {
     use super::{golden_section_search, brent_search};
 
-    // Minimum at Pi on [0, 2*Pi].
+    // Minimum at Pi when x ∈ [0, 2*Pi].
     let cosine = |x: f64| (x.cos(), -(x.sin()));
 
     let ranges = vec![(0.01, 1.0)];
 
     for range in ranges {
-        let (xmin, f, nr_iterations) = brent_df_search(cosine, range.0, range.1, 0.0, 0);
+        let (xmin, f, nr_iterations) =
+            brent_df_search(cosine, range.0, range.1, 0.0, 0);
 
-        let (_, _, nr_iterations_golden) =
+        let (xmin_golden, _, nr_iterations_golden) =
             golden_section_search(|x| cosine(x).0, range.0, range.1, 0.0, 0);
 
-        let (_, _, nr_iterations_brent) =
+        let (xmin_brent, _, nr_iterations_brent) =
             brent_search(|x| cosine(x).0, range.0, range.1, 0.0, 0);
 
         println!("xmin: {:.8} f(xmin): {:6.2} iterations: {} vs brent {} golden {}",
@@ -204,6 +205,8 @@ fn test_cosine() {
         );
 
         assert_float_relative_eq!(xmin, std::f64::consts::PI, 1.0e-8);
+        assert_float_relative_eq!(xmin_brent, std::f64::consts::PI, 1.0e-8);
+        assert_float_relative_eq!(xmin_golden, std::f64::consts::PI, 1.0e-8);
     }
 }
 
@@ -221,10 +224,10 @@ fn test_poly2() {
     for range in ranges {
         let (xmin, f, nr_iterations) = brent_df_search(poly2, range.0, range.1, 0.0, 0);
 
-        let (_, _, nr_iterations_golden) =
+        let (xmin_golden, _, nr_iterations_golden) =
             golden_section_search(|x| poly2(x).0, range.0, range.1, 0.0, 0);
 
-        let (_, _, nr_iterations_brent) =
+        let (xmin_brent, _, nr_iterations_brent) =
             brent_search(|x| poly2(x).0, range.0, range.1, 0.0, 0);
 
         println!("xmin: {:.8} f(xmin): {:6.2} iterations: {} vs brent {} vs golden {}",
@@ -232,5 +235,7 @@ fn test_poly2() {
         );
 
         assert_float_relative_eq!(xmin, 1.5, 1.0e-8);
+        assert_float_relative_eq!(xmin_brent, 1.5, 1.0e-8);
+        assert_float_relative_eq!(xmin_golden, 1.5, 1.0e-8);
     }
 }

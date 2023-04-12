@@ -14,6 +14,8 @@ pub mod brents_method;
 pub use brents_method::brent_search;
 pub mod brents_df_method;
 pub use brents_df_method::brent_df_search;
+pub mod simplex;
+pub use simplex::amoeba;
 
 #[cfg(test)]
 #[macro_use]
