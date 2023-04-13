@@ -48,9 +48,9 @@ impl Matrix {
 
     #[inline] pub fn get_psum(&self, psum: &mut [f64]) {
         #[allow(clippy::needless_range_loop)]
-        for j in 0..self.nrows {
-            let mut sum =0.0;
-            for i in 0..self.ncols {
+        for j in 0..self.ncols {
+            let mut sum = 0.0;
+            for i in 0..self.nrows {
                 sum += self.get(i, j);
             }
             psum[j] = sum;
@@ -69,6 +69,7 @@ impl Matrix {
 /// is a vector in `ndim` dimensions, by the downhill simplex method of Nelder and Mead.
 /// The initial simplex is specified as in equation `Pi = P0 + de` by a `point[0..ndim-1]` and a
 /// constant displacement `step_delta` along each coordinate direction.
+///
 /// Returned is the location of the minimum.
 ///
 pub fn amoeba<F: Fn (&[f64]) -> f64>(
@@ -77,7 +78,7 @@ pub fn amoeba<F: Fn (&[f64]) -> f64>(
     step_delta: f64,
     ftol: f64,
     max_iterations: usize
-) -> Vec<f64>
+) -> (Vec<f64>, f64, usize)
 {
     const MIN_TOLERANCE: f64 = 1.0e-10_f64; // can be as small as f64 precision
     let ftol = ftol.max(MIN_TOLERANCE);
@@ -118,7 +119,11 @@ pub fn amoeba<F: Fn (&[f64]) -> f64>(
         y[i] = fun(&x);
     }
 
+    let mut fmin: f64 = y[0];
+
     p.get_psum(&mut psum);
+
+    let mut nr_iterations: usize = 1;
 
     for _i in 0..max_iterations {
         let mut ilo = 0;
@@ -143,6 +148,8 @@ pub fn amoeba<F: Fn (&[f64]) -> f64>(
         let rtol = 2.0 * (y[ihi] - y[ilo]).abs()
             / (y[ihi].abs() + y[ilo].abs() + TINY);
 
+        fmin = y[0];
+
         // Compute the fractional range from highest to lowest and return if satisfactory.
         if rtol < ftol {
             //If returning, put best point and value in slot 0.
@@ -155,6 +162,8 @@ pub fn amoeba<F: Fn (&[f64]) -> f64>(
             //fmin = y[0];
             break;
         }
+
+
 
         //nfunc += 2;
 
@@ -192,9 +201,11 @@ pub fn amoeba<F: Fn (&[f64]) -> f64>(
         //else {
         //    --nfunc; // Correct the evaluation count.
         //}
+
+        nr_iterations += 1;
     }
 
-    pmin
+    (pmin, fmin, nr_iterations)
 }
 
 // Helper function: Extrapolates by a factor fac through the face of the simplex across from
@@ -232,12 +243,37 @@ fn amoeba_try<F: Fn (&[f64]) -> f64>(
     ytry
 }
 
+#[cfg(test)]
+#[test]
+fn test_x2_y4() {
+    // Since we know that `f(x,y) = x^2 + y^4` is always positive except at the original where it is zero,
+    // we conclude that a local minimum occurs at (0, 0).
+    fn x2_y4(x: &[f64]) -> f64 {
+        x[0]*x[0] + x[1]*x[1]*x[1]*x[1]
+    }
 
-//test
-//since we know that `f(x,y) = x^2 + y^4` is always positive
-//except at the original where it is zero,
-//we conclude that a local minimum occurs at (0, 0).
+    let (min, fmin, nr_iterations) = amoeba(x2_y4, &[100.0, -100.0], 1.0, 1.0e-8, 100);
 
-//https://real-statistics.com/other-mathematical-topics/function-maximum-minimum/local-maxima-minima-multivariate/
+    println!("min: {}, {} fmin: {fmin} iterations: {nr_iterations}", min[0], min[1]);
+
+    assert_float_absolute_eq!(min[0], 0.0, 1.0e-4);
+    assert_float_absolute_eq!(min[1], 0.0, 1.0e-4);
+}
+
+#[cfg(test)]
+#[test]
+fn test_x2_y2_xy() {
+    fn x2_y4_xy(x: &[f64]) -> f64 {
+        x[0]*x[0] + x[1]*x[1] - 2.0*x[0]
+    }
+
+    let (min, fmin, nr_iterations) = amoeba(x2_y4_xy, &[10.0, 10.0], 0.1, 1.0e-9, 100);
+
+    println!("min: {}, {} fmin: {fmin} iterations: {nr_iterations}", min[0], min[1]);
+
+    assert_float_absolute_eq!(min[0], 1.0, 1.0e-4);
+    assert_float_absolute_eq!(min[1], 0.0, 1.0e-4);
+}
+
 
 //https://www.gnu.org/software/gsl/doc/html/multimin.html
