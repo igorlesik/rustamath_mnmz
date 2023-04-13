@@ -72,6 +72,27 @@ impl Matrix {
 ///
 /// Returned is the location of the minimum.
 ///
+/// # Example
+///
+/// ```
+/// use rustamath_mnmz::{amoeba};
+/// use assert_float_eq::*;
+/// //  Paraboloid center at (1,2), scale factors (10, 20), minimum value 30
+/// let p = vec![1.0, 2.0, 10.0, 20.0, 30.0];
+///
+/// let paraboloid = |x: &[f64]|  {
+///     // Paraboloid centered on (p[0],p[1]), with scale factors (p[2],p[3]) and minimum p[4]
+///     p[2] * (x[0] - p[0]) * (x[0] - p[0]) + p[3] * (x[1] - p[1]) * (x[1] - p[1]) + p[4]
+/// };
+///
+/// let (min, fmin, nr_iterations) = amoeba(paraboloid, &[100.0, -100.0], 1.1, 1.0e-9, 100);
+///
+/// println!("min: {}, {} fmin: {fmin} iterations: {nr_iterations}", min[0], min[1]);
+///
+/// assert_float_absolute_eq!(min[0], 1.0, 1.0e-4);
+/// assert_float_absolute_eq!(min[1], 2.0, 1.0e-4);
+/// assert_float_absolute_eq!(fmin,  30.0, 1.0e-4);
+/// ```
 pub fn amoeba<F: Fn (&[f64]) -> f64>(
     fun: F,
     point: &[f64],
@@ -277,3 +298,22 @@ fn test_x2_y2_xy() {
 
 
 //https://www.gnu.org/software/gsl/doc/html/multimin.html
+#[cfg(test)]
+#[test]
+fn test_paraboloid() {
+    //  Paraboloid center at (1,2), scale factors (10, 20), minimum value 30
+    let p = vec![1.0, 2.0, 10.0, 20.0, 30.0];
+
+    let paraboloid = |x: &[f64]|  {
+        // Paraboloid centered on (p[0],p[1]), with scale factors (p[2],p[3]) and minimum p[4]
+        p[2] * (x[0] - p[0]) * (x[0] - p[0]) + p[3] * (x[1] - p[1]) * (x[1] - p[1]) + p[4]
+    };
+
+    let (min, fmin, nr_iterations) = amoeba(paraboloid, &[100.0, -100.0], 1.1, 1.0e-9, 100);
+
+    println!("min: {}, {} fmin: {fmin} iterations: {nr_iterations}", min[0], min[1]);
+
+    assert_float_absolute_eq!(min[0], 1.0, 1.0e-4);
+    assert_float_absolute_eq!(min[1], 2.0, 1.0e-4);
+    assert_float_absolute_eq!(fmin,  30.0, 1.0e-4);
+}

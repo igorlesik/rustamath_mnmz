@@ -200,7 +200,7 @@ fn test_cosine() {
         let (xmin_brent, _, nr_iterations_brent) =
             brent_search(|x| cosine(x).0, range.0, range.1, 0.0, 0);
 
-        println!("xmin: {:.8} f(xmin): {:6.2} iterations: {} vs brent {} golden {}",
+        println!("xmin: {:.8} f(xmin): {:6.2} iterations: {} vs brent {} vs golden {}",
             xmin, f, nr_iterations, nr_iterations_brent, nr_iterations_golden
         );
 
