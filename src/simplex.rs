@@ -140,13 +140,13 @@ pub fn amoeba<F: Fn (&[f64]) -> f64>(
         y[i] = fun(&x);
     }
 
-    let mut fmin: f64 = y[0];
+    let fmin: f64;
 
     p.get_psum(&mut psum);
 
     let mut nr_iterations: usize = 1;
 
-    for _i in 0..max_iterations {
+    loop {
         let mut ilo = 0;
         // First we must determine which point is the highest (worst), next-highest, and
         // lowest (best), by looping over the points in the simplex.
@@ -169,10 +169,8 @@ pub fn amoeba<F: Fn (&[f64]) -> f64>(
         let rtol = 2.0 * (y[ihi] - y[ilo]).abs()
             / (y[ihi].abs() + y[ilo].abs() + TINY);
 
-        fmin = y[0];
-
         // Compute the fractional range from highest to lowest and return if satisfactory.
-        if rtol < ftol {
+        if rtol < ftol || nr_iterations > max_iterations {
             //If returning, put best point and value in slot 0.
             y.swap(0, ilo);
             #[allow(clippy::needless_range_loop)]
@@ -180,7 +178,7 @@ pub fn amoeba<F: Fn (&[f64]) -> f64>(
                 p.swap(0, i, ilo, i);
                 pmin[i] = p.get(0, i);
             }
-            //fmin = y[0];
+            fmin = y[0];
             break;
         }
 
